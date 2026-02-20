@@ -1,4 +1,5 @@
-import { createUser, getAll, getById } from './user.repository.js'
+import { getAll, getById } from './user.repository.js'
+import { registerUser } from './user.service.js'
 
 export const getAllUsers = async (req, reply) => {
   const users = await getAll(req.server)
@@ -16,7 +17,7 @@ export const getUserById = async (req, reply) => {
 }
 
 export const createUserHandler = async (req, reply) => {
-  const user = await createUser(req.server, {
+  const user = await registerUser({
     name: req.body.name,
     email: req.body.email
   })
