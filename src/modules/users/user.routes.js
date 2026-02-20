@@ -3,7 +3,9 @@ import { UserRepository } from './user.repository.js'
 import { UserService } from './user.service.js'
 import { userCreationSchema } from './validation/user.creation.js'
 
+// Route registration and dependency wiring for users module.
 async function userRoutes(fastify) {
+  // Compose module dependencies once per plugin scope.
   const userRepository = new UserRepository(fastify)
   const userService = new UserService(userRepository)
   const { getAllUsers, getUserById, createUserHandler } = buildUserController({
@@ -11,17 +13,15 @@ async function userRoutes(fastify) {
     userService
   })
 
-  //GET
+  // GET routes
   fastify.get('/check', async () => ({ hello: 'world' }))
   fastify.get('/', getAllUsers)
   fastify.get('/:id', getUserById)
 
-  //POST
+  // POST routes
   fastify.post('/', { schema: { body: userCreationSchema } }, createUserHandler)
 
-  //PUT
-
-  //DELETE
+  // PUT/DELETE routes can be added here.
 }
 
 export default userRoutes

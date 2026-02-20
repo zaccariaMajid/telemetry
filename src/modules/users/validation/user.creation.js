@@ -1,3 +1,4 @@
+// JSON schema for creating a user.
 export const userCreationSchema = {
   type: 'object',
   required: ['name', 'email', 'password'],
