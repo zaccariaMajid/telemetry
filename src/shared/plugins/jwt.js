@@ -11,7 +11,7 @@ async function jwtPlugin(fastify) {
     try {
       await req.jwtVerify();
     } catch (err) {
-      reply.status(401).send({ error: 'Non autorizzato' });
+      reply.status(401).send({ error: 'Unauthorized' });
     }
   });
 }

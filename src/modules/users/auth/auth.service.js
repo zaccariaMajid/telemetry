@@ -5,15 +5,17 @@ import {
 
 // Business logic for auth operations.
 export class AuthService {
-  constructor(
+  constructor({
     userRepository,
     hashPassword = defaultHashPassword,
-    comparePassword = defaultComparePassword
-  ) {
+    comparePassword = defaultComparePassword,
+    signToken
+  }) {
     // Dependencies are injected for testability.
     this.userRepository = userRepository
     this.hashPassword = hashPassword
     this.comparePassword = comparePassword
+    this.signToken = signToken
   }
 
   sanitizeUser(user) {
@@ -21,6 +23,21 @@ export class AuthService {
     const { password, ...safeUser } = user
     return safeUser
   }
+
+  generateToken(user) {
+    if (!this.signToken) {
+      throw new Error('Token signer not configured')
+    }
+
+    return this.signToken(
+      {
+        sub: user._id.toString(),
+        email: user.email
+      },
+      { expiresIn: '1h' }
+    )
+  }
+
 
   // Register a new user if email is not already taken.
   async register(data) {
@@ -55,6 +72,7 @@ export class AuthService {
       throw new Error('Invalid credentials')
     }
 
-    return this.sanitizeUser(user)
+    const accessToken = await this.generateToken(user)
+    return { user: this.sanitizeUser(user), accessToken }
   }
 }
