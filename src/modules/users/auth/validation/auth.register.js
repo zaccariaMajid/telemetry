@@ -1,5 +1,5 @@
 // JSON schema for creating a user.
-export const userCreationSchema = {
+export const userRegisterSchema = {
   type: 'object',
   required: ['name', 'email', 'password'],
   properties: {
