@@ -1,0 +1,102 @@
+# docker-compose.yml
+name: telemetry
+services:
+  # API Fastify
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #     - "9229:9229"  # Node debugger
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules  # No rebuild deps
+  #   environment:
+  #     - NODE_ENV=development
+  #     - MONGO_URL=mongodb://mongo:27017/telemetry
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - JWT_SECRET=telemetry-super-secret-2026
+  #     - FASTIFY_LOG_LEVEL=info
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - telemetry-net
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+
+  # MongoDB + Time Series indexes
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init.js
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: telemetryadmin
+      MONGO_INITDB_DATABASE: telemetry
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - telemetry-net
+
+  # Redis (caching + rate limit)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - telemetry-net
+
+  # Traffic simulator (20k metrics/sec)
+  # simulator:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.simulator
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     API_URL: http://api:3000
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+  #   networks:
+  #     - telemetry-net
+
+  # # Artillery load tester
+  # artillery:
+  #   image: artilleryio/artillery:2.0.0-60
+  #   volumes:
+  #     - ./load-tests:/load-tests
+  #   profiles: ["loadtest"]
+  #   networks:
+  #     - telemetry-net
+
+volumes:
+  mongodata:
+  redisdata:
+
+networks:
+  telemetry-net:
+    driver: bridge
