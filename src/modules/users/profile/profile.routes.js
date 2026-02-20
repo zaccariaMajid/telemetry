@@ -7,14 +7,14 @@ async function profileRoutes(fastify) {
   // Compose module dependencies once per plugin scope.
   const userRepository = new UserRepository(fastify)
   const profileService = new ProfileService(userRepository)
-  const { getAllUsers, getUserById, createUserHandler } = buildProfileController({
+  const { getAllUsers, getUserById } = buildProfileController({
     userRepository,
     profileService
   })
 
   // GET routes
   fastify.get('/check', async () => ({ hello: 'world' }))
-  fastify.get('/', getAllUsers)
+  fastify.get('/', { onRequest: [fastify.authenticate] }, getAllUsers)
   fastify.get('/:id', getUserById)
 
   // PUT/DELETE routes can be added here.

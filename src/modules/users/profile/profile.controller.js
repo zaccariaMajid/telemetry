@@ -15,16 +15,5 @@ export const buildProfileController = ({ userRepository, profileService }) => ({
     }
 
     return reply.send(user)
-  },
-
-  // POST /users
-  createUserHandler: async (req, reply) => {
-    const user = await profileService.registerUser({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password
-    })
-
-    return reply.status(201).send(user)
   }
 })
