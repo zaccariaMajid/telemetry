@@ -1,8 +1,21 @@
-import app from './src/app.js';
+import 'dotenv/config'
+import Fastify from 'fastify'
+import dbConnector from './src/shared/plugins/db-connector.js'
+import userRoutes from './src/modules/users/user.routes.js'
 
-try {
-  await app.listen({ port: 3000 });
-} catch (err) {
-  app.log.error(err);
-  process.exit(1);
-}
+/**
+ * @type {import('fastify').FastifyInstance} Instance of Fastify
+ */
+const fastify = Fastify({
+  logger: true
+})
+
+fastify.register(dbConnector)
+fastify.register(userRoutes, { prefix: '/users' })
+
+fastify.listen({ port: Number(process.env.PORT) || 3000 }, function (err) {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+})
