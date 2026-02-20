@@ -4,16 +4,16 @@ import fastifyJwt from '@fastify/jwt';
 async function jwtPlugin(fastify) {
   fastify.register(fastifyJwt, {
     secret: process.env.JWT_SECRET
-  });
+  })
 
   // decorator per proteggere le routes
   fastify.decorate('authenticate', async (req, reply) => {
     try {
-      await req.jwtVerify();
+      await req.jwtVerify()
     } catch (err) {
-      reply.status(401).send({ error: 'Unauthorized' });
+      return reply.status(401).send({ error: 'Unauthorized' })
     }
-  });
+  })
 }
 
-export default fastifyPlugin(jwtPlugin);
+export default fastifyPlugin(jwtPlugin)

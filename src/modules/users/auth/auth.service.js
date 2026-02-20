@@ -2,8 +2,7 @@ import {
   comparePassword as defaultComparePassword,
   hashPassword as defaultHashPassword,
 } from "../../../shared/utils/hashing.js";
-
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 // Business logic for auth operations.
 export class AuthService {
@@ -42,12 +41,15 @@ export class AuthService {
     );
   }
 
+  getRefreshTokenTtlMs() {
+    const configured = Number(process.env.REFRESH_TOKEN_EXPIRES_IN_MS);
+    if (Number.isFinite(configured) && configured > 0) return configured;
+    return 30 * 24 * 60 * 60 * 1000;
+  }
+
   generateRefreshToken() {
-    var refreshToken = crypto.randomBytes(40).toString("hex");
-    const expiresAt = new Date(
-      Date.now() + parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) ||
-        30 * 24 * 60 * 60 * 1000,
-    ); // 30 days
+    const refreshToken = crypto.randomBytes(40).toString("hex");
+    const expiresAt = new Date(Date.now() + this.getRefreshTokenTtlMs());
     return { refreshToken, expiresAt };
   }
 
@@ -88,26 +90,49 @@ export class AuthService {
     }
 
     const accessToken = await this.generateToken(user);
-    return { user: this.sanitizeUser(user), accessToken };
+    const { refreshToken, expiresAt } = this.generateRefreshToken();
+
+    if (this.authRepository) {
+      await this.authRepository.saveRefreshToken({
+        userId: user._id.toString(),
+        refreshToken,
+        expiresAt,
+      });
+    }
+
+    return {
+      user: this.sanitizeUser(user),
+      accessToken,
+      refreshToken,
+      refreshTokenExpiresAt: expiresAt,
+    };
   }
 
   async refresh(token) {
-    const saved = await this.authRepository.findByToken(token);
-
-    if (!saved) throw new Error("Refresh token non valido");
-    if (saved.expiresAt < new Date()) {
-      await this.authRepository.deleteRefreshToken(token);
-      throw new Error("Refresh token scaduto");
+    if (!this.authRepository) {
+      throw new Error("Auth repository not configured");
     }
 
-    const accessToken = jwt.sign({ id: saved.userId }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const saved = await this.authRepository.findByToken(token);
 
+    if (!saved) throw new Error("Invalid refresh token");
+    if (saved.expiresAt < new Date()) {
+      await this.authRepository.deleteRefreshToken(token);
+      throw new Error("Expired refresh token");
+    }
+
+    const user = await this.userRepository.getById(saved.userId);
+    if (!user) {
+      await this.authRepository.deleteRefreshToken(token);
+      throw new Error("User not found for refresh token");
+    }
+
+    const accessToken = await this.generateToken(user);
     return { accessToken };
   }
 
   async logout(token) {
-    await deleteRefreshToken(token);
+    if (!this.authRepository) return;
+    await this.authRepository.deleteRefreshToken(token);
   }
 }

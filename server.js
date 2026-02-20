@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
+import fastifyCookie from '@fastify/cookie'
 import dbConnector from './src/shared/plugins/db-connector.js'
 import jwtPlugin from './src/shared/plugins/jwt.js'
 import authRoutes from './src/modules/users/auth/auth.routes.js'
@@ -13,6 +14,9 @@ const fastify = Fastify({
 })
 
 fastify.register(dbConnector)
+fastify.register(fastifyCookie, {
+  hook: 'onRequest'
+})
 fastify.register(jwtPlugin)
 fastify.register(authRoutes, { prefix: '/auth' })
 fastify.register(profileRoutes, { prefix: '/users' })
