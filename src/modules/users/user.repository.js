@@ -1,22 +1,25 @@
 import { ObjectId } from 'mongodb'
 
-// Get reference to the users collection from the Fastify MongoDB instance
-const usersCollection = (fastify) => fastify.mongo.db.collection('users')
+export class UserRepository {
+  constructor(fastify) {
+    this.collection = fastify.mongo.db.collection('users')
+  }
 
-// Retrieve all users from the collection
-export const getAll = async (fastify) => usersCollection(fastify).find().toArray()
+  async getAll() {
+    return this.collection.find().toArray()
+  }
 
-// Find a user by their email address
-export const findByEmail = async (fastify, email) => usersCollection(fastify).findOne({ email })
+  async findByEmail(email) {
+    return this.collection.findOne({ email })
+  }
 
-// Retrieve a user by their ID
-export const getById = async (fastify, id) => {
-  if (!ObjectId.isValid(id)) return null
-  return usersCollection(fastify).findOne({ _id: new ObjectId(id) })
-}
+  async getById(id) {
+    if (!ObjectId.isValid(id)) return null
+    return this.collection.findOne({ _id: new ObjectId(id) })
+  }
 
-// Create a new user and return the created document
-export const createUser = async (fastify, payload) => {
-  const result = await usersCollection(fastify).insertOne(payload)
-  return usersCollection(fastify).findOne({ _id: result.insertedId })
+  async createUser(payload) {
+    const result = await this.collection.insertOne(payload)
+    return this.collection.findOne({ _id: result.insertedId })
+  }
 }

@@ -1,10 +1,22 @@
-import { findByEmail, createUser } from "./user.repository";
+import { hashPassword as defaultHashPassword } from '../../shared/utils/hashing.js'
 
-export const registerUser = async (data) => {
-  const existingUser = await findByEmail(data.email);
-  if (existingUser) {
-    throw new Error("User already exists");
+export class UserService {
+  constructor(userRepository, hashPassword = defaultHashPassword) {
+    this.userRepository = userRepository
+    this.hashPassword = hashPassword
   }
-  return createUser(data);
-};
 
+  async registerUser(data) {
+    const existingUser = await this.userRepository.findByEmail(data.email)
+    if (existingUser) {
+      throw new Error('User already exists')
+    }
+
+    const hashedPassword = await this.hashPassword(data.password)
+    if (!hashedPassword) {
+      throw new Error('Error hashing password')
+    }
+
+    return this.userRepository.createUser({ ...data, password: hashedPassword })
+  }
+}
