@@ -1,7 +1,7 @@
-import { hashPassword as defaultHashPassword } from '../../shared/utils/hashing.js'
+import { hashPassword as defaultHashPassword } from '../../../shared/utils/hashing.js'
 
 // Business logic for user operations.
-export class UserService {
+export class ProfileService {
   constructor(userRepository, hashPassword = defaultHashPassword) {
     // Dependencies are injected for testability and decoupling.
     this.userRepository = userRepository

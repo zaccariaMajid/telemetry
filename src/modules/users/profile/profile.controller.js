@@ -1,5 +1,5 @@
 // Builds HTTP handlers using injected dependencies.
-export const buildUserController = ({ userRepository, userService }) => ({
+export const buildProfileController = ({ userRepository, profileService }) => ({
   // GET /users
   getAllUsers: async (req, reply) => {
     const users = await userRepository.getAll()
@@ -19,7 +19,7 @@ export const buildUserController = ({ userRepository, userService }) => ({
 
   // POST /users
   createUserHandler: async (req, reply) => {
-    const user = await userService.registerUser({
+    const user = await profileService.registerUser({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password
