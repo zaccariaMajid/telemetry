@@ -5,6 +5,10 @@ export const userRegisterSchema = {
   properties: {
     name: { type: 'string' },
     email: { type: 'string', format: 'email' },
-    password: { type: 'string', minLength: 6 }
+    password: { type: 'string', minLength: 6 },
+      roles: {
+        type: 'array',
+        items: { type: 'string' }
+      }
   }
 }

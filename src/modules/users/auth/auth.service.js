@@ -36,6 +36,7 @@ export class AuthService {
       {
         sub: user._id.toString(),
         email: user.email,
+        roles: Array.isArray(user.roles) ? user.roles : user.roles ? [user.roles] : []
       },
       { expiresIn: process.env.JWT_EXPIRES_IN || "15m" },
     );
@@ -59,7 +60,7 @@ export class AuthService {
     if (existingUser) {
       throw new Error("User already exists");
     }
-
+    console.log("Registering user with data:", data);
     // Store only the password hash, never the plain password.
     const hashedPassword = await this.hashPassword(data.password);
     if (!hashedPassword) {

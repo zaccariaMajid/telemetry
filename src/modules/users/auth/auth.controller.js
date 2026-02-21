@@ -6,6 +6,7 @@ export const buildAuthController = ({ authService }) => ({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
+      roles: req.body.roles || []
     })
 
     return reply.status(201).send(user)

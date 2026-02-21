@@ -11,7 +11,7 @@ async function profileRoutes(fastify) {
 
   // GET routes
   fastify.get('/check', async () => ({ hello: 'world' }))
-  fastify.get('/', { onRequest: [fastify.authenticate] }, getAllUsers)
+  fastify.get('/', { onRequest: [fastify.authenticate(['admin'])] }, getAllUsers)
   fastify.get('/:id', getUserById)
 
   // PUT/DELETE routes can be added here.
