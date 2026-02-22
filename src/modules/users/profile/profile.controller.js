@@ -13,7 +13,20 @@ export const buildProfileController = ({ profileService }) => ({
     if (!user) {
       return reply.status(404).send({ error: 'User not found' })
     }
-
     return reply.send(user)
+  },
+
+  //GET /users/me
+  getMyProfile: async (req, reply) => {
+    const user = await profileService.getProfileById(req.user.sub);
+    if (!user) {
+      return reply.status(404).send({ error: 'User not found' })
+    }
+    return reply.send({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roles: user.roles
+    })
   }
 })
