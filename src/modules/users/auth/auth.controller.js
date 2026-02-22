@@ -6,18 +6,18 @@ export const buildAuthController = ({ authService }) => ({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
-      roles: req.body.roles || []
-    })
+      roles: req.body.roles || [],
+    });
 
-    return reply.status(201).send(user)
+    return reply.status(201).send(user);
   },
 
   // POST /auth/login
   loginHandler: async (req, reply) => {
     const { user, accessToken, refreshToken } = await authService.login({
       email: req.body.email,
-      password: req.body.password
-    })
+      password: req.body.password,
+    });
 
     return reply
       .setCookie("accessToken", accessToken, {
@@ -33,40 +33,36 @@ export const buildAuthController = ({ authService }) => ({
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })
       .status(200)
-      .send({ user, accessToken })
+      .send({ user, accessToken });
   },
 
   // POST /auth/refresh
   refreshHandler: async (req, reply) => {
-    const refreshToken = req.cookies?.refreshToken
+    const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return reply.status(401).send({ error: "Refresh token not provided" })
+      return reply.status(401).send({ error: "Refresh token not provided" });
     }
-
-    try {
-      const { accessToken } = await authService.refresh(refreshToken)
-      return reply
-        .setCookie("accessToken", accessToken, {
-          httpOnly: true,
-          secure: false,
-          sameSite: "strict",
-          maxAge: 60 * 15, // 15 minuti
-        })
-        .send({ accessToken })
-    } catch (error) {
-      return reply.status(401).send({ error: error.message })
-    }
+    
+    const { accessToken } = await authService.refresh(refreshToken);
+    return reply
+      .setCookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 60 * 15, // 15 minuti
+      })
+      .send({ accessToken });
   },
 
   // POST /auth/logout
   logoutHandler: async (req, reply) => {
-    const refreshToken = req.cookies?.refreshToken
+    const refreshToken = req.cookies?.refreshToken;
     if (refreshToken) {
-      await authService.logout(refreshToken)
+      await authService.logout(refreshToken);
     }
     return reply
       .clearCookie("accessToken")
       .clearCookie("refreshToken")
-      .send({ message: "Logged out successfully" })
-  }
-})
+      .send({ message: "Logged out successfully" });
+  },
+});

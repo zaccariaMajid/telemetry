@@ -6,5 +6,6 @@ const app = Fastify({ logger: false });
 
 // await app.register(prismaPlugin);
 await app.register(userRoutes, { prefix: '/api/users' });
+await app.register(errorHandlerPlugin);
 
 export default app;

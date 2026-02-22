@@ -1,3 +1,4 @@
+import { AppError, BadRequestError } from "../../../shared/errors/app-error.js";
 import {
   comparePassword as defaultComparePassword,
   hashPassword as defaultHashPassword,
@@ -29,7 +30,7 @@ export class AuthService {
 
   generateToken(user) {
     if (!this.signToken) {
-      throw new Error("Token signer not configured");
+      throw new AppError("Token signer not configured");
     }
 
     return this.signToken(
@@ -58,13 +59,13 @@ export class AuthService {
   async register(data) {
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
-      throw new Error("User already exists");
+      throw new BadRequestError("User already exists");
     }
     console.log("Registering user with data:", data);
     // Store only the password hash, never the plain password.
     const hashedPassword = await this.hashPassword(data.password);
     if (!hashedPassword) {
-      throw new Error("Error hashing password");
+      throw new AppError("Error hashing password");
     }
 
     const createdUser = await this.userRepository.createUser({
@@ -79,7 +80,7 @@ export class AuthService {
   async login(data) {
     const user = await this.userRepository.findByEmail(data.email);
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new BadRequestError("Invalid credentials");
     }
 
     const isValidPassword = await this.comparePassword(
@@ -87,7 +88,7 @@ export class AuthService {
       user.password,
     );
     if (!isValidPassword) {
-      throw new Error("Invalid credentials");
+      throw new BadRequestError("Invalid credentials");
     }
 
     const accessToken = await this.generateToken(user);
@@ -111,21 +112,21 @@ export class AuthService {
 
   async refresh(token) {
     if (!this.authRepository) {
-      throw new Error("Auth repository not configured");
+      throw new AppError("Auth repository not configured");
     }
 
     const saved = await this.authRepository.findByToken(token);
 
-    if (!saved) throw new Error("Invalid refresh token");
+    if (!saved) throw new AppError("Invalid refresh token");
     if (saved.expiresAt < new Date()) {
       await this.authRepository.deleteRefreshToken(token);
-      throw new Error("Expired refresh token");
+      throw new AppError("Expired refresh token");
     }
 
     const user = await this.userRepository.getById(saved.userId);
     if (!user) {
       await this.authRepository.deleteRefreshToken(token);
-      throw new Error("User not found for refresh token");
+      throw new AppError("User not found for refresh token");
     }
 
     const accessToken = await this.generateToken(user);
