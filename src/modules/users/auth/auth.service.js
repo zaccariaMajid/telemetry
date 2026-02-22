@@ -4,6 +4,7 @@ import {
   hashPassword as defaultHashPassword,
 } from "../../../shared/utils/hashing.js";
 import crypto from "node:crypto";
+import sanitizeUser from "../../../shared/utils/sanitize.js";
 
 // Business logic for auth operations.
 export class AuthService {
@@ -21,16 +22,6 @@ export class AuthService {
     this.comparePassword = comparePassword;
     this.signToken = signToken;
   }
-  /**
-   * 
-   * @param {Object|null} user - The user object to sanitize.
-   * @returns {Object|null} User object without sensitive fields, or null if input is falsy. 
-   */
-  sanitizeUser(user) {
-    if (!user) return null;
-    const { password, ...safeUser } = user;
-    return safeUser;
-  }
 
   generateToken(user) {
     if (!this.signToken) {
@@ -41,7 +32,11 @@ export class AuthService {
       {
         sub: user._id.toString(),
         email: user.email,
-        roles: Array.isArray(user.roles) ? user.roles : user.roles ? [user.roles] : []
+        roles: Array.isArray(user.roles)
+          ? user.roles
+          : user.roles
+            ? [user.roles]
+            : [],
       },
       { expiresIn: process.env.JWT_EXPIRES_IN || "15m" },
     );
@@ -77,7 +72,7 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return this.sanitizeUser(createdUser);
+    return sanitizeUser(createdUser);
   }
 
   // Validate credentials and return user data.
@@ -107,7 +102,7 @@ export class AuthService {
     }
 
     return {
-      user: this.sanitizeUser(user),
+      user: sanitizeUser(user),
       accessToken,
       refreshToken,
       refreshTokenExpiresAt: expiresAt,

@@ -1,4 +1,5 @@
 import { BadRequestError } from "../../../shared/errors/app-error.js";
+import sanitizeUser from "../../../shared/utils/sanitize.js";
 
 // Business logic for profile operations.
 export class ProfileService {
@@ -18,7 +19,7 @@ export class ProfileService {
     if (!user) {
       throw new BadRequestError("User not found");
     }
-    return user;
+    return sanitizeUser(user);
   }
 
   // Add a role to a user.
@@ -34,6 +35,6 @@ export class ProfileService {
       user.roles.push(role);
       await this.userRepository.update(userId, { roles: user.roles });
     }
-    return user;
+    return sanitizeUser(user);
   }
 }
