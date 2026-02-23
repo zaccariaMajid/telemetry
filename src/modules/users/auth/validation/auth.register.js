@@ -6,11 +6,6 @@ export const userRegisterSchema = {
     tenantId: { type: "string" },
     full_name: { type: "string" },
     email: { type: "string", format: "email" },
-    password: { type: "string", minLength: 6 },
-    roles: {
-      type: "array",
-      items: { type: "string" },
-    },
-    is_active: { type: "boolean" }
+    password: { type: "string", minLength: 6 }
   },
 };

@@ -23,7 +23,7 @@ export const buildProfileController = ({ profileService }) => ({
       return reply.status(404).send({ error: "User not found" });
     }
     return reply.send({
-      id: user.id,
+      id: user._id,
       name: user.name,
       email: user.email,
       roles: user.roles,

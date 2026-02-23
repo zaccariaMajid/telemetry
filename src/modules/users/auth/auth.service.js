@@ -60,7 +60,6 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestError("User already exists");
     }
-    console.log("Registering user with data:", data);
     // Store only the password hash, never the plain password.
     const hashedPassword = await this.hashPassword(data.password);
     if (!hashedPassword) {

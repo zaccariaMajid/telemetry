@@ -6,9 +6,7 @@ export const buildAuthController = ({ authService }) => ({
       tenantId: req.body.tenantId,
       full_name: req.body.full_name,
       email: req.body.email,
-      password: req.body.password,
-      roles: req.body.roles || [],
-      is_active: req.body.is_active || false,
+      password: req.body.password
     });
 
     return reply.status(201).send(user);
@@ -35,7 +33,7 @@ export const buildAuthController = ({ authService }) => ({
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })
       .status(200)
-      .send({ user, accessToken });
+      .send({ user, accessToken }); //! CLEAR ACCESS TOKEN FROM RESPONSE BODY IN PRODUCTION, USE ONLY COOKIES FOR TOKENS
   },
 
   // POST /auth/refresh
