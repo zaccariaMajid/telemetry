@@ -12,6 +12,11 @@ export class UserRepository {
     return this.collection.find().toArray();
   }
 
+  // Return number of users belonging to a tenant.
+  async countByTenant(tenantId) {
+    return this.collection.countDocuments({ tenantId });
+  }
+
   // Find one user by email.
   async findByEmail(email) {
     return this.collection.findOne({ email });

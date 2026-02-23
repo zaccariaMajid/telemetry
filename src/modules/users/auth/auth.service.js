@@ -14,6 +14,7 @@ export class AuthService {
     hashPassword = defaultHashPassword,
     comparePassword = defaultComparePassword,
     signToken,
+    tenantsApi,
   }) {
     // Dependencies are injected for testability.
     this.userRepository = userRepository;
@@ -21,6 +22,7 @@ export class AuthService {
     this.hashPassword = hashPassword;
     this.comparePassword = comparePassword;
     this.signToken = signToken;
+    this.tenantsApi = tenantsApi;
   }
 
   generateToken(user) {
@@ -65,6 +67,13 @@ export class AuthService {
     if (!hashedPassword) {
       throw new AppError("Error hashing password");
     }
+    if (data.tenantId && this.tenantsApi) {
+      const tenant = await this.tenantsApi.getTenantById(data.tenantId);
+      console.log(`TenantsModuleApi: Fetching tenant by ID ${data.tenantId} returned:`, tenant);
+      if (!tenant) throw new BadRequestError("Tenant not found");
+    }
+    // Assign "admin" role if no tenantId, otherwise "user".
+    data.roles = [data.tenantId ? "user" : "admin"];
 
     const createdUser = await this.userRepository.createUser({
       ...data,
