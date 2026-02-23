@@ -1,16 +1,12 @@
 import { buildProfileController } from "./profile.controller.js";
-import { UserRepository } from "../user.repository.js";
-import { ProfileService } from "./profile.service.js";
-import { TenantRepository } from "../../tenants/tenants.repository.js";
-import { TenantsModuleApi } from "../../tenants/tenants.module-api.js";
 
-// Route registration and dependency wiring for users module.
-async function profileRoutes(fastify) {
-  // Compose module dependencies once per plugin scope.
-  const userRepository = new UserRepository(fastify);
-  const tenantRepository = new TenantRepository(fastify);
-  const tenantsApi = new TenantsModuleApi(tenantRepository);
-  const profileService = new ProfileService(userRepository, tenantsApi);
+// Route registration for profile module.
+async function profileRoutes(fastify, options) {
+  const { profileService } = options;
+  if (!profileService) {
+    throw new Error("profileService is required for profileRoutes");
+  }
+
   const { getAllUsers, getUserById, getMyProfile, addRoleToUser, assignTenantToUser } =
     buildProfileController({ profileService });
 

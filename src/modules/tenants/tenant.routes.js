@@ -1,17 +1,13 @@
 import { buildTenantController } from "./tenant.controller.js";
-import { TenantRepository } from "./tenants.repository.js";
-import { TenantService } from "./tenant.service.js";
-import { UserRepository } from "../users/user.repository.js";
-import { UsersModuleApi } from "../users/users.module-api.js";
 import { tenantCreateSchema } from "./validation/tenant.create.js";
 
-// Route registration and dependency wiring for users module.
-async function tenantRoutes(fastify) {
-  // Compose module dependencies once per plugin scope.
-  const tenantRepository = new TenantRepository(fastify);
-  const userRepository = new UserRepository(fastify);
-  const usersApi = new UsersModuleApi(userRepository);
-  const tenantService = new TenantService(tenantRepository, usersApi);
+// Route registration for tenants module.
+async function tenantRoutes(fastify, options) {
+  const { tenantService } = options;
+  if (!tenantService) {
+    throw new Error("tenantService is required for tenantRoutes");
+  }
+
   const { getAllTenants, getTenantById, createTenant } = buildTenantController({
     tenantService,
   });
