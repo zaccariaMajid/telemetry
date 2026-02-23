@@ -21,12 +21,12 @@ async function tenantRoutes(fastify) {
   );
   fastify.get(
     "/:id",
-    { onRequest: [fastify.authenticate(["admin"])], schema: tenantCreateSchema },
+    { onRequest: [fastify.authenticate(["admin"])] },
     getTenantById,
   );
   fastify.post(
     "/",
-    { onRequest: [fastify.authenticate(["admin"])] },
+    { onRequest: [fastify.authenticate(["admin"])], schema: tenantCreateSchema },
     createTenant,
   );
 }

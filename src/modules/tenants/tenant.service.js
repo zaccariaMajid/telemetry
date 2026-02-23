@@ -23,9 +23,9 @@ export class TenantService {
   }
 
   async createTenant(data) {
-    const existing = await this.tenantRepository.findByEmail(data.email);
+    const existing = await this.tenantRepository.findByName(data.name);
     if (existing) {
-      throw new BadRequestError("Email already in use");
+      throw new BadRequestError("Tenant name already in use");
     }
     return this.tenantRepository.createTenant(data);
   }

@@ -12,9 +12,9 @@ export class TenantRepository {
     return this.collection.find().toArray();
   }
 
-  // Find one tenant by email.
-  async findByEmail(email) {
-    return this.collection.findOne({ email });
+  // Find one tenant by name.
+  async findByName(name) {
+    return this.collection.findOne({ name });
   }
 
   // Find one tenant by Mongo ObjectId string.
