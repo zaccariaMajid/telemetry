@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import dbConnector from './shared/plugins/db-connector.js'
 import jwtPlugin from './shared/plugins/jwt.js'
+import errorHandlerPlugin from './shared/plugins/error-handler.plugin.js'
 import authRoutes from './modules/users/auth/auth.routes.js'
 import profileRoutes from './modules/users/profile/profile.routes.js'
 import tenantRoutes from './modules/tenants/tenant.routes.js'
@@ -18,6 +19,7 @@ app.register(fastifyCookie, {
 });
 app.register(jwtPlugin);
 app.register(auditPlugin);
+app.register(errorHandlerPlugin);
 
 app.register(authRoutes, { prefix: '/auth' });
 app.register(profileRoutes, { prefix: '/users' });

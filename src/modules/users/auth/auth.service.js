@@ -1,4 +1,8 @@
-import { AppError, BadRequestError } from "../../../shared/errors/app-error.js";
+import {
+  AppError,
+  BadRequestError,
+  UnauthorizedError,
+} from "../../../shared/errors/app-error.js";
 import {
   comparePassword as defaultComparePassword,
   hashPassword as defaultHashPassword,
@@ -54,6 +58,10 @@ export class AuthService {
     const refreshToken = crypto.randomBytes(40).toString("hex");
     const expiresAt = new Date(Date.now() + this.getRefreshTokenTtlMs());
     return { refreshToken, expiresAt };
+  }
+
+  hashRefreshToken(refreshToken) {
+    return crypto.createHash("sha256").update(refreshToken).digest("hex");
   }
 
   // Register a new user if email is not already taken.
@@ -135,11 +143,12 @@ export class AuthService {
 
     const accessToken = await this.generateToken(user);
     const { refreshToken, expiresAt } = this.generateRefreshToken();
+    const refreshTokenHash = this.hashRefreshToken(refreshToken);
 
     if (this.authRepository) {
       await this.authRepository.saveRefreshToken({
         userId: user._id.toString(),
-        refreshToken,
+        refreshTokenHash,
         expiresAt,
       });
     }
@@ -156,27 +165,44 @@ export class AuthService {
     if (!this.authRepository) {
       throw new AppError("Auth repository not configured");
     }
+    if (!token) {
+      throw new UnauthorizedError("Refresh token not provided");
+    }
 
-    const saved = await this.authRepository.findByToken(token);
+    const tokenHash = this.hashRefreshToken(token);
+    const saved = await this.authRepository.findByTokenHash(tokenHash);
 
-    if (!saved) throw new AppError("Invalid refresh token");
+    if (!saved) throw new UnauthorizedError("Invalid refresh token");
     if (saved.expiresAt < new Date()) {
-      await this.authRepository.deleteRefreshToken(token);
-      throw new AppError("Expired refresh token");
+      await this.authRepository.deleteRefreshTokenByHash(tokenHash);
+      throw new UnauthorizedError("Expired refresh token");
     }
 
     const user = await this.userRepository.getById(saved.userId);
     if (!user) {
-      await this.authRepository.deleteRefreshToken(token);
-      throw new AppError("User not found for refresh token");
+      await this.authRepository.deleteRefreshTokenByHash(tokenHash);
+      throw new UnauthorizedError("User not found for refresh token");
     }
 
+    // Rotate refresh token: invalidate old token and issue a new one.
+    await this.authRepository.deleteRefreshTokenByHash(tokenHash);
+
     const accessToken = await this.generateToken(user);
-    return { accessToken };
+    const { refreshToken, expiresAt } = this.generateRefreshToken();
+    const refreshTokenHash = this.hashRefreshToken(refreshToken);
+
+    await this.authRepository.saveRefreshToken({
+      userId: user._id.toString(),
+      refreshTokenHash,
+      expiresAt,
+    });
+
+    return { accessToken, refreshToken };
   }
 
   async logout(token) {
     if (!this.authRepository) return;
-    await this.authRepository.deleteRefreshToken(token);
+    const tokenHash = this.hashRefreshToken(token);
+    await this.authRepository.deleteRefreshTokenByHash(tokenHash);
   }
 }

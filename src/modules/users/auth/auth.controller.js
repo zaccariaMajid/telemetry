@@ -15,6 +15,7 @@ export const buildAuthController = ({ authService }) => ({
 
   // POST /auth/login
   loginHandler: async (req, reply) => {
+    const isProd = process.env.NODE_ENV === "production";
     const { user, accessToken, refreshToken } = await authService.login({
       email: req.body.email,
       password: req.body.password,
@@ -23,14 +24,16 @@ export const buildAuthController = ({ authService }) => ({
     return reply
       .setCookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
+        secure: isProd,
         sameSite: "strict",
+        path: "/",
         maxAge: 60 * 15, // 15 minuti
       })
       .setCookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false,
+        secure: isProd,
         sameSite: "strict",
+        path: "/auth",
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })
       .status(200)
@@ -39,18 +42,27 @@ export const buildAuthController = ({ authService }) => ({
 
   // POST /auth/refresh
   refreshHandler: async (req, reply) => {
+    const isProd = process.env.NODE_ENV === "production";
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
       return reply.status(401).send({ error: "Refresh token not provided" });
     }
     
-    const { accessToken } = await authService.refresh(refreshToken);
+    const { accessToken, refreshToken: rotatedRefreshToken } = await authService.refresh(refreshToken);
     return reply
       .setCookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false,
+        secure: isProd,
         sameSite: "strict",
+        path: "/",
         maxAge: 60 * 15, // 15 minuti
+      })
+      .setCookie("refreshToken", rotatedRefreshToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: "strict",
+        path: "/auth",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
       })
       .send({ accessToken });
   },
@@ -62,8 +74,8 @@ export const buildAuthController = ({ authService }) => ({
       await authService.logout(refreshToken);
     }
     return reply
-      .clearCookie("accessToken")
-      .clearCookie("refreshToken")
+      .clearCookie("accessToken", { path: "/" })
+      .clearCookie("refreshToken", { path: "/auth" })
       .send({ message: "Logged out successfully" });
   },
 });
