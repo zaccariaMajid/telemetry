@@ -26,7 +26,7 @@ async function tenantRoutes(fastify) {
   );
   fastify.post(
     "/",
-    { onRequest: [fastify.authenticate(["admin"])], schema: tenantCreateSchema },
+    { schema: tenantCreateSchema },
     createTenant,
   );
 }

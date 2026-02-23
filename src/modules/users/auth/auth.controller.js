@@ -3,10 +3,12 @@ export const buildAuthController = ({ authService }) => ({
   // POST /auth/register
   registerHandler: async (req, reply) => {
     const user = await authService.register({
-      name: req.body.name,
+      tenantId: req.body.tenantId,
+      full_name: req.body.full_name,
       email: req.body.email,
       password: req.body.password,
       roles: req.body.roles || [],
+      is_active: req.body.is_active || false,
     });
 
     return reply.status(201).send(user);

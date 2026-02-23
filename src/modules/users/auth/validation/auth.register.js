@@ -1,14 +1,16 @@
 // JSON schema for creating a user.
 export const userRegisterSchema = {
-  type: 'object',
-  required: ['name', 'email', 'password'],
+  type: "object",
+  required: ["tenantId", "full_name", "email", "password", "roles", "is_active"],
   properties: {
-    name: { type: 'string' },
-    email: { type: 'string', format: 'email' },
-    password: { type: 'string', minLength: 6 },
-      roles: {
-        type: 'array',
-        items: { type: 'string' }
-      }
-  }
-}
+    tenantId: { type: "string" },
+    full_name: { type: "string" },
+    email: { type: "string", format: "email" },
+    password: { type: "string", minLength: 6 },
+    roles: {
+      type: "array",
+      items: { type: "string" },
+    },
+    is_active: { type: "boolean" }
+  },
+};

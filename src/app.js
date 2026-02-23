@@ -9,7 +9,7 @@ import tenantRoutes from './modules/tenants/tenant.routes.js'
 import auditPlugin from './shared/plugins/audit-plugin.js'
 
 const app = Fastify({
-  logger: false
+  logger: true
 });
 
 app.register(dbConnector);
