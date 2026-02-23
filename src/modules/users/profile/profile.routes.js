@@ -11,7 +11,7 @@ async function profileRoutes(fastify) {
   const tenantRepository = new TenantRepository(fastify);
   const tenantsApi = new TenantsModuleApi(tenantRepository);
   const profileService = new ProfileService(userRepository, tenantsApi);
-  const { getAllUsers, getUserById, getMyProfile, addRoleToUser } =
+  const { getAllUsers, getUserById, getMyProfile, addRoleToUser, assignTenantToUser } =
     buildProfileController({ profileService });
 
   // GET routes
@@ -35,16 +35,11 @@ async function profileRoutes(fastify) {
     addRoleToUser,
   );
 
-  //PUT assign tenant to user
+  // PUT assign tenant to user
   fastify.put(
     "/:id/tenant",
     { onRequest: [fastify.authenticate(["admin"])] },
-    async (request, reply) => {
-      const { id } = request.params;
-      const { tenantId } = request.body;
-      const updatedUser = await profileService.assignTenantToUser(id, tenantId);
-      reply.send(updatedUser);
-    },
+    assignTenantToUser,
   );
 }
 

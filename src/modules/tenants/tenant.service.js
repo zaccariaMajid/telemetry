@@ -1,5 +1,4 @@
 import { BadRequestError } from "../../shared/errors/app-error.js";
-import sanitizeUser from "../../shared/utils/sanitize.js";
 
 // Business logic for tenant operations.
 export class TenantService {
@@ -27,7 +26,7 @@ export class TenantService {
       : 0;
 
     return {
-      ...sanitizeUser(tenant),
+      ...tenant,
       usersCount
     };
   }

@@ -30,7 +30,7 @@ async function tenantRoutes(fastify) {
   );
   fastify.post(
     "/",
-    { schema: tenantCreateSchema },
+    { schema: { body: tenantCreateSchema } },
     createTenant,
   );
 }

@@ -39,4 +39,17 @@ export const buildProfileController = ({ profileService }) => ({
     const updatedUser = await profileService.addRoleToUser(req.params.id, role);
     return reply.send(updatedUser);
   },
+
+  // PUT /users/:id/tenant
+  assignTenantToUser: async (req, reply) => {
+    const { tenantId } = req.body;
+    if (!tenantId) {
+      return reply.status(400).send({ error: "tenantId is required" });
+    }
+    const updatedUser = await profileService.assignTenantToUser(
+      req.params.id,
+      tenantId,
+    );
+    return reply.send(updatedUser);
+  },
 });
