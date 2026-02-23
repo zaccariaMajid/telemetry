@@ -12,6 +12,11 @@ export class UserRepository {
     return this.collection.find().toArray();
   }
 
+  // Return all users belonging to a specific tenant.
+  async getAllByTenant(tenantId) {
+    return this.collection.find({ tenantId }).toArray();
+  }
+
   // Return number of users belonging to a tenant.
   async countByTenant(tenantId) {
     return this.collection.countDocuments({ tenantId });
@@ -31,6 +36,12 @@ export class UserRepository {
   async getById(id) {
     if (!ObjectId.isValid(id)) return null;
     return this.collection.findOne({ _id: new ObjectId(id) });
+  }
+
+  // Find one user by id within a tenant scope.
+  async getByIdAndTenant(id, tenantId) {
+    if (!ObjectId.isValid(id)) return null;
+    return this.collection.findOne({ _id: new ObjectId(id), tenantId });
   }
 
   // Insert and return created user document.

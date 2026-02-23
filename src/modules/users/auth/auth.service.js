@@ -37,6 +37,7 @@ export class AuthService {
     return this.signToken(
       {
         sub: user._id.toString(),
+        tenantId: user.tenantId || null,
         email: user.email,
         roles: Array.isArray(user.roles)
           ? user.roles
