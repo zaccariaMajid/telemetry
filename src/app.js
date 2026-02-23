@@ -30,18 +30,19 @@ app.register(auditPlugin);
 app.register(errorHandlerPlugin);
 
 app.register(async function moduleOrchestrator(fastify) {
-  // Compose infra dependencies once and inject into modules.
+  // Composition root:
+  // Build concrete dependencies in one place, then inject them into route plugins.
+  // This keeps module route files focused on HTTP wiring only.
   const userRepository = new UserRepository(fastify);
   const authRepository = new AuthRepository(fastify);
   const tenantRepository = new TenantRepository(fastify);
 
-  await authRepository.ensureIndexes();
-
-  // Cross-module contracts.
+  // Public module contracts for cross-module communication.
+  // Services consume these APIs instead of importing other modules' internals.
   const tenantsApi = new TenantsModuleApi(tenantRepository);
   const usersApi = new UsersModuleApi(userRepository);
 
-  // Module services.
+  // Application services (use cases) wired with repositories + module APIs.
   const authService = new AuthService({
     userRepository,
     authRepository,
@@ -51,6 +52,7 @@ app.register(async function moduleOrchestrator(fastify) {
   const profileService = new ProfileService(userRepository, tenantsApi);
   const tenantService = new TenantService(tenantRepository, usersApi);
 
+  // Register vertical slices with explicit dependency injection via plugin options.
   fastify.register(authRoutes, { prefix: '/auth', authService });
   fastify.register(profileRoutes, { prefix: '/users', profileService });
   fastify.register(tenantRoutes, { prefix: '/tenants', tenantService });
