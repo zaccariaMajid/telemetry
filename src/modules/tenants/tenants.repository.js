@@ -38,4 +38,9 @@ export class TenantRepository {
     );
     return this.getById(id);
   }
+
+  async deleteById(id) {
+    if (!ObjectId.isValid(id)) return;
+    await this.collection.deleteOne({ _id: new ObjectId(id) });
+  }
 }

@@ -4,6 +4,7 @@ export const buildAuthController = ({ authService }) => ({
   registerHandler: async (req, reply) => {
     const user = await authService.register({
       tenantId: req.body.tenantId,
+      tenant: req.body.tenant,
       full_name: req.body.full_name,
       email: req.body.email,
       password: req.body.password

@@ -22,6 +22,11 @@ export class UserRepository {
     return this.collection.findOne({ email });
   }
 
+  // Find one user by email within a tenant.
+  async findByEmailAndTenant(email, tenantId) {
+    return this.collection.findOne({ email, tenantId });
+  }
+
   // Find one user by Mongo ObjectId string.
   async getById(id) {
     if (!ObjectId.isValid(id)) return null;

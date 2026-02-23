@@ -58,28 +58,64 @@ export class AuthService {
 
   // Register a new user if email is not already taken.
   async register(data) {
-    const existingUser = await this.userRepository.findByEmail(data.email);
-    if (existingUser) {
-      throw new BadRequestError("User already exists");
+    let tenantId = data.tenantId;
+    let role = "user";
+    let createdTenantId = null;
+
+    if (tenantId) {
+      if (!this.tenantsApi) {
+        throw new AppError("Tenants API not configured");
+      }
+      const tenant = await this.tenantsApi.getTenantById(tenantId);
+      if (!tenant) {
+        throw new BadRequestError("Tenant not found");
+      }
+    } else {
+      if (!this.tenantsApi) {
+        throw new AppError("Tenants API not configured");
+      }
+      if (!data.tenant) {
+        throw new BadRequestError(
+          "tenant payload is required when tenantId is missing",
+        );
+      }
+
+      const createdTenant = await this.tenantsApi.createTenant(data.tenant);
+      tenantId = createdTenant?._id?.toString?.() || createdTenant?.id;
+      createdTenantId = tenantId;
+      role = "admin";
     }
+
+    const existingUser = await this.userRepository.findByEmailAndTenant(
+      data.email,
+      tenantId,
+    );
+    if (existingUser) {
+      throw new BadRequestError("User already exists in this tenant");
+    }
+
     // Store only the password hash, never the plain password.
     const hashedPassword = await this.hashPassword(data.password);
     if (!hashedPassword) {
       throw new AppError("Error hashing password");
     }
-    if (data.tenantId && this.tenantsApi) {
-      const tenant = await this.tenantsApi.getTenantById(data.tenantId);
-      if (!tenant) throw new BadRequestError("Tenant not found");
+
+    try {
+      const createdUser = await this.userRepository.createUser({
+        tenantId,
+        full_name: data.full_name,
+        email: data.email,
+        password: hashedPassword,
+        roles: [role],
+        is_active: true,
+      });
+      return sanitizeUser(createdUser);
+    } catch (err) {
+      if (createdTenantId) {
+        await this.tenantsApi.deleteTenantById(createdTenantId);
+      }
+      throw err;
     }
-    // Assign "admin" role if no tenantId, otherwise "user".
-    data.roles = [data.tenantId ? "user" : "admin"];
-
-    const createdUser = await this.userRepository.createUser({
-      ...data,
-      password: hashedPassword,
-    });
-
-    return sanitizeUser(createdUser);
   }
 
   // Validate credentials and return user data.

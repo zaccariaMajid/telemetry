@@ -12,4 +12,12 @@ export class TenantsModuleApi {
     }
     return this.tenantsRepository.getById(tenantId);
   }
+
+  async createTenant(payload) {
+    return this.tenantsRepository.createTenant(payload);
+  }
+
+  async deleteTenantById(tenantId) {
+    return this.tenantsRepository.deleteById(tenantId);
+  }
 }
