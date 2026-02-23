@@ -25,7 +25,7 @@ export const buildAuthController = ({ authService }) => ({
       .setCookie("accessToken", accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: "strict",
+        sameSite: "strict", // Sends cookie only on same-site requests (CSRF protection)
         path: "/",
         maxAge: 60 * 15, // 15 minuti
       })

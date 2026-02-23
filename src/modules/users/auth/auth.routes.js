@@ -12,7 +12,7 @@ async function authRoutes(fastify) {
   // Compose auth dependencies once per plugin scope.
   const userRepository = new UserRepository(fastify);
   const authRepository = new AuthRepository(fastify);
-  await authRepository.ensureIndexes();
+  // await authRepository.ensureIndexes();
   const tenantRepository = new TenantRepository(fastify);
   const tenantsApi = new TenantsModuleApi(tenantRepository);
   const authService = new AuthService({
