@@ -69,7 +69,6 @@ export class AuthService {
     }
     if (data.tenantId && this.tenantsApi) {
       const tenant = await this.tenantsApi.getTenantById(data.tenantId);
-      console.log(`TenantsModuleApi: Fetching tenant by ID ${data.tenantId} returned:`, tenant);
       if (!tenant) throw new BadRequestError("Tenant not found");
     }
     // Assign "admin" role if no tenantId, otherwise "user".

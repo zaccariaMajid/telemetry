@@ -7,7 +7,6 @@ export class TenantsModuleApi {
   }
 
   async getTenantById(tenantId) {
-    console.debug(`TenantsModuleApi: Fetching tenant by ID ${tenantId}`);
     if (!tenantId) {
       throw new BadRequestError("tenantId is required");
     }
