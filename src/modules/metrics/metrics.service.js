@@ -34,7 +34,6 @@ export class MetricsService {
 
   async rateLimitMetrics(tenantId, metricsCount) {
     // If Redis is unavailable we do not block ingestion.
-    // This keeps telemetry ingestion resilient, at the cost of skipping rate limit.
     if (!this.redis) {
       return { current: metricsCount, allowed: true };
     }
@@ -50,10 +49,8 @@ export class MetricsService {
     // concurrent requests on the same key are serialized by Redis.
     // The returned value is the current count for this exact second bucket.
     const currentCount = await this.redis.incrBy(rateKey, metricsCount);
-    console.log(`Rate limit check for tenant ${tenantId}: ${currentCount}/${MAX} metrics in current second`);
 
     // Keep the bucket only a few seconds to avoid memory growth.
-    // We do this every call; it is idempotent and cheap.
     await this.redis.expire(rateKey, 3);
 
     // If limit is exceeded, rollback this increment so the bucket remains accurate.
@@ -68,28 +65,24 @@ export class MetricsService {
   }
   
   async ingestMetrics(payload) {
-    // 1) Enforce tenant-level throughput limit first.
-    // Failing early avoids unnecessary DB work on rejected bursts.
     await this.rateLimitMetrics(payload.tenantId, payload.metrics.length);
 
     let previousDeviceStatus = null;
     if (this.redis) {
-      // 2) Read previous device state from Redis for observability/debugging.
       const deviceKey = `device:${payload.tenantId}:${payload.deviceId}`;
       const existingDeviceState = await this.redis.hGetAll(deviceKey);
       previousDeviceStatus = existingDeviceState?.status || null;
 
-      // 3) Mark device as online and update heartbeat timestamp.
       await this.redis.hSet(deviceKey, {
         status: "online",
         lastPing: Date.now().toString(),
       });
     }
 
-    // 4) Persist payload to MongoDB.
+
     await this.metricsRepository.ingestMetrics(payload);
 
-    // 5) Invalidate cached counters derived from metrics.
+    // Invalidate cached counters derived from metrics.
     // Next read will rebuild cache from fresh DB state.
     if (this.redis) {
       await this.redis.del(`metrics_count_${payload.tenantId}`);
@@ -99,5 +92,36 @@ export class MetricsService {
       ingested: payload.metrics.length,
       previousDeviceStatus,
     };
+  }
+
+  async getMetricsByRange(tenantId, deviceId, startTime, endTime) {
+    const metricsKey = `metrics_range:${tenantId}:${deviceId}:${startTime.getTime()}:${endTime.getTime()}`;
+    if(this.redis){
+      const cachedMetrics = await this.redis.get(metricsKey);
+      if(cachedMetrics){
+        return JSON.parse(cachedMetrics);
+      }
+    }
+    const metrics = await this.metricsRepository.getMetricsByRange(
+      tenantId,
+      deviceId,
+      startTime,
+      endTime,
+    );
+    if(this.redis){
+      await this.redis.set(metricsKey, JSON.stringify(metrics), {
+        EX: 60,
+      });
+    }
+    return metrics;
+  }
+
+  async deleteMetricsByTenantIdDeviceIdAndTimeRange(tenantId, deviceId, startTime, endTime) {
+    return this.metricsRepository.deleteMetricsByTenantIdDeviceIdAndTimeRange(
+      tenantId,
+      deviceId,
+      startTime,
+      endTime,
+    );
   }
 }

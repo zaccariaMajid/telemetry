@@ -8,7 +8,12 @@ async function metricsRoutes(fastify, options) {
     throw new Error("metricsService is required for metricsRoutes");
   }
 
-  const { getAllMetrics, ingestMetrics } = buildMetricsController({
+  const {
+    getAllMetrics,
+    ingestMetrics,
+    getMetricsByRange,
+    deleteMetricsByTenantIdDeviceIdAndTimeRange,
+  } = buildMetricsController({
     metricsService,
   });
 
@@ -26,6 +31,20 @@ async function metricsRoutes(fastify, options) {
       schema: { body: metricsIngestSchema },
     },
     ingestMetrics,
+  );
+  fastify.get(
+    "/range",
+    {
+      onRequest: [fastify.authenticate(["admin"])],
+    },
+    getMetricsByRange,
+  );
+  fastify.delete(
+    "/",
+    {
+      onRequest: [fastify.authenticate(["admin"])],
+    },
+    deleteMetricsByTenantIdDeviceIdAndTimeRange,
   );
 }
 

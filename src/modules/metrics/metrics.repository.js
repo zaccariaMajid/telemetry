@@ -28,9 +28,40 @@ export class MetricsRepository {
     return this.collection.deleteMany({ tenantId });
   }
 
+  async getMetricsByRange(tenantId, deviceId, startTime, endTime) {
+    return this.collection
+      .find({
+        tenantId,
+        deviceId,
+        createdAt: { $gte: new Date(startTime), $lte: new Date(endTime) },
+      })
+      .toArray();
+  }
+
   // Insert and return created metrics document.
   async ingestMetrics(payload) {
     const result = await this.collection.insertOne(payload);
     return this.collection.findOne({ _id: result.insertedId });
+  }
+
+  async deleteMetricsByTenantId(tenantId) {
+    return this.collection.deleteMany({ tenantId });
+  }
+
+  async deleteMetricsByDeviceId(tenantId, deviceId) {
+    return this.collection.deleteMany({ tenantId, deviceId });
+  }
+
+  async deleteMetricsByTenantIdDeviceIdAndTimeRange(
+    tenantId,
+    deviceId,
+    startTime,
+    endTime,
+  ) {
+    return this.collection.deleteMany({
+      tenantId,
+      deviceId,
+      createdAt: { $gte: new Date(startTime), $lte: new Date(endTime) },
+    });
   }
 }
