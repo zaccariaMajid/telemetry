@@ -25,14 +25,14 @@ export const buildAuthController = ({ authService }) => ({
       .setCookie("accessToken", accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: "strict", // Sends cookie only on same-site requests (CSRF protection)
+        // sameSite: "strict", // Sends cookie only on same-site requests (CSRF protection)
         path: "/",
         maxAge: 60 * 15, // 15 minuti
       })
       .setCookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: "strict",
+        // sameSite: "strict",
         path: "/auth",
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })
@@ -53,14 +53,14 @@ export const buildAuthController = ({ authService }) => ({
       .setCookie("accessToken", accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: "strict",
+        // sameSite: "strict",
         path: "/",
         maxAge: 60 * 15, // 15 minuti
       })
       .setCookie("refreshToken", rotatedRefreshToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: "strict",
+        // sameSite: "strict",
         path: "/auth",
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })

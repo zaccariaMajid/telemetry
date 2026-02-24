@@ -8,7 +8,7 @@ import auditPlugin from './shared/plugins/audit-plugin.js'
 import moduleOrchestrator from './modules/module-orchestrator.js'
 
 const app = Fastify({
-  logger: false
+  logger: true
 });
 
 app.register(dbConnector);

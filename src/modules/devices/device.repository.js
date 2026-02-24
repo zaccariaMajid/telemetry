@@ -17,6 +17,11 @@ export class DeviceRepository {
     return this.collection.findOne({ name });
   }
 
+  // Find one device by name and tenant.
+  async findByNameAndTenant(name, tenantId) {
+    return this.collection.findOne({ name, tenantId });
+  }
+
   // Find one device by Mongo ObjectId string.
   async getById(id) {
     if (!ObjectId.isValid(id)) return null;
