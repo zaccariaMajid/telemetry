@@ -2,9 +2,10 @@ import { BadRequestError } from "../../shared/errors/app-error.js";
 
 // Business logic for device operations.
 export class DeviceService {
-  constructor(deviceRepository) {
+  constructor(deviceRepository, tenantsApi) {
     // Dependency is injected for testability and decoupling.
     this.deviceRepository = deviceRepository;
+    this.tenantsApi = tenantsApi;
   }
 
   // Get all devices.
@@ -19,15 +20,22 @@ export class DeviceService {
       throw new BadRequestError("Device not found");
     }
 
-    const deviceId = device._id?.toString?.() || device.id;
+    _ = device._id?.toString?.() || device.id;
 
     return {
-      ...device
+      ...device,
     };
   }
 
   async createDevice(data) {
-    const existing = await this.deviceRepository.findByNameAndTenant(data.name, data.tenantId);
+    const tenant = await this.tenantsApi.getTenantById(data.tenantId);
+    if (!tenant) {
+      throw new BadRequestError("Tenant not found");
+    }
+    const existing = await this.deviceRepository.findByNameAndTenant(
+      data.name,
+      data.tenantId,
+    );
     if (existing) {
       throw new BadRequestError("Device name already in use");
     }

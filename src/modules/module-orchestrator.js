@@ -38,7 +38,7 @@ async function moduleOrchestrator(fastify) {
   });
   const profileService = new ProfileService(userRepository, tenantsApi);
   const tenantService = new TenantService(tenantRepository, usersApi);
-  const deviceService = new DeviceService(deviceRepository);
+  const deviceService = new DeviceService(deviceRepository, tenantsApi);
 
   // Register slices with explicit dependency injection.
   fastify.register(authRoutes, { prefix: "/auth", authService });
