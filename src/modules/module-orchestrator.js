@@ -37,7 +37,7 @@ async function moduleOrchestrator(fastify) {
     tenantsApi,
   });
   const profileService = new ProfileService(userRepository, tenantsApi);
-  const tenantService = new TenantService(tenantRepository, usersApi);
+  const tenantService = new TenantService(tenantRepository, usersApi, fastify.redis);
   const deviceService = new DeviceService(deviceRepository, tenantsApi);
 
   // Register slices with explicit dependency injection.

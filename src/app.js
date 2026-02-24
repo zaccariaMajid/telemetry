@@ -2,6 +2,7 @@ import 'dotenv/config'
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import dbConnector from './shared/plugins/db-connector.js'
+import redisConnector from './shared/plugins/redis-connector.js'
 import jwtPlugin from './shared/plugins/jwt.js'
 import errorHandlerPlugin from './shared/plugins/error-handler.plugin.js'
 import auditPlugin from './shared/plugins/audit-plugin.js'
@@ -12,6 +13,7 @@ const app = Fastify({
 });
 
 app.register(dbConnector);
+app.register(redisConnector);
 app.register(fastifyCookie, {
   hook: 'onRequest'
 });
