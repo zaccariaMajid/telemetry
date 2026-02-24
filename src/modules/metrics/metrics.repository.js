@@ -19,13 +19,17 @@ export class MetricsRepository {
     return this.collection.countDocuments({ tenantId });
   }
 
+  async getMetricsByTenantId(tenantId) {
+    return this.collection.find({ tenantId }).toArray();
+  }
+
   // Delete metrics by tenantId (for tenant cleanup).
   async deleteByTenantId(tenantId) {
     return this.collection.deleteMany({ tenantId });
   }
 
   // Insert and return created metrics document.
-  async createMetrics(payload) {
+  async ingestMetrics(payload) {
     const result = await this.collection.insertOne(payload);
     return this.collection.findOne({ _id: result.insertedId });
   }

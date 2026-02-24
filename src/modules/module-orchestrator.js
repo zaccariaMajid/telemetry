@@ -17,6 +17,10 @@ import { TenantService } from "./tenants/tenant.service.js";
 import { DeviceRepository } from "./devices/device.repository.js";
 import { DeviceService } from "./devices/device.service.js";
 import deviceRoutes from "./devices/device.routes.js";
+// METRICS
+import metricsRoutes from "./metrics/metrics.routes.js";
+import { MetricsRepository } from "./metrics/metrics.repository.js";
+import { MetricsService } from "./metrics/metrics.service.js";
 
 async function moduleOrchestrator(fastify) {
   // Composition root: build dependencies once and inject them into modules.
@@ -24,6 +28,7 @@ async function moduleOrchestrator(fastify) {
   const authRepository = new AuthRepository(fastify);
   const tenantRepository = new TenantRepository(fastify);
   const deviceRepository = new DeviceRepository(fastify);
+  const metricsRepository = new MetricsRepository(fastify);
 
   // Cross-module contracts.
   const tenantsApi = new TenantsModuleApi(tenantRepository);
@@ -39,12 +44,14 @@ async function moduleOrchestrator(fastify) {
   const profileService = new ProfileService(userRepository, tenantsApi);
   const tenantService = new TenantService(tenantRepository, usersApi, fastify.redis);
   const deviceService = new DeviceService(deviceRepository, tenantsApi);
+  const metricsService = new MetricsService(metricsRepository, tenantsApi, fastify.redis);
 
   // Register slices with explicit dependency injection.
   fastify.register(authRoutes, { prefix: "/auth", authService });
   fastify.register(profileRoutes, { prefix: "/users", profileService });
   fastify.register(tenantRoutes, { prefix: "/tenants", tenantService });
   fastify.register(deviceRoutes, { prefix: "/devices", deviceService });
+  fastify.register(metricsRoutes, { prefix: "/metrics", metricsService });
 }
 
 export default moduleOrchestrator;

@@ -20,12 +20,8 @@ export const metricsIngestSchema = {
             minLength: 1, 
             maxLength: 32 
           },  // "temperature", "rpm"
-          value: { 
-            oneOf: [
+          value: 
               { type: "number" },    // 245.3
-              { type: "integer" }    // 1850
-            ] 
-          },
           unit: { type: "string", maxLength: 8 }      // "°C", "g", "rpm" (opt.)
         }
       }
